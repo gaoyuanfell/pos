@@ -7,7 +7,7 @@ class Pos {
     E = ["06074089_4", "06074089_33"]
     t = [this.m, this.D[parseInt(`${Math.random() * this.D.length}`)]].join('')
     u = [this.p, this.E[parseInt(`${Math.random() * this.E.length}`)]].join('')
-    d = 0.98
+    d = 0.9
 
     iframe: HTMLIFrameElement
     constructor() {
@@ -16,8 +16,7 @@ class Pos {
             try {
                 this.compile()
             } catch (e) {
-                console.log('报错了'); // -> 输出
-                console.log(e.message); // -> 可以收集当前代码报错的原因(num is not defined)
+                console.error(e); // -> 可以收集当前代码报错的原因(num is not defined)
             }
         }
     }
@@ -58,7 +57,6 @@ class Pos {
         // iframe.src = 'http://localhost:8086/static/index.html'
         iframe.src = src
         document.body.appendChild(iframe)
-        iframe.align = 'center,center'
         iframe.width = '100%'
         iframe.height = '100%'
         iframe.marginWidth = '0'
@@ -66,18 +64,16 @@ class Pos {
         iframe.scrolling = 'no'
         iframe.frameBorder = '0'
         iframe.style.overflowX = 'hidden'
-        iframe.setAttribute('allowtransparency', 'true')
         this.iframe = iframe
     }
 
     // 解析页面
     compile() {
         let window: Window | any = this.iframe.contentWindow
-        let document: Document = this.iframe.contentDocument
-        var ads = (window.ads && window.ads.length && window.ads) || window.newAds;
+        let document: Document = this.iframe.contentDocument || window.document
+        let ads = (window.ads && window.ads.length && window.ads) || window.newAds;
 
         let aList: HTMLCollectionOf<HTMLAnchorElement> = document.getElementsByTagName('a')
-
         
         if (ads && ads.length) {
             // 处理 a标签
@@ -85,7 +81,8 @@ class Pos {
                 let data = ads[i];
                 let curl = data.curl;
                 let desc = data.desc || data.title || '';
-                var _curl = this.replaceHref(desc, this.t, this.u);
+                let _curl = this.replaceHref(desc, this.t, this.u);
+                data.curl = _curl;
 
                 for (let i = 0; i < aList.length; i++) {
                     let a = aList[i];
@@ -97,7 +94,7 @@ class Pos {
             }
 
             // 处理事件绑定
-            var pic_container = document.getElementById("pic_container");
+            let pic_container = document.getElementById("pic_container");
             if (pic_container && pic_container.firstElementChild.nodeName == 'A') {
                 let aref = document.createElement('a');
                 aref.style.position = 'absolute';
@@ -110,9 +107,9 @@ class Pos {
                 aref.href = ads[0].curl;
                 pic_container.appendChild(aref);
             }
-            var container = document.getElementById("#container");
+            let container = document.getElementById("#container");
             if (container && container.firstElementChild.nodeName == 'A') {
-                var aref = document.createElement('a');
+                let aref = document.createElement('a');
                 aref.style.position = 'absolute';
                 aref.style.top = '0';
                 aref.style.left = '0';
@@ -127,12 +124,13 @@ class Pos {
     }
 
     diffStr(result, target) {
-        let a = result.split('')
-        let b = target.split('')
-        let ok = 0
-        a.forEach((data, index) => {
-            if (data === b[index])++ok
-        });
+        let a = result.split('');
+        let b = target.split('');
+        let ok = 0;
+        for (let i = 0; i < a.length; i++) {
+            let data = a[i];
+            if (data === b[i]) ++ok;
+        }
         return ok / a.length
     }
 }
