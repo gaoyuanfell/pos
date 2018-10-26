@@ -73,7 +73,12 @@ class Pos {
         let document: Document = this.iframe.contentDocument || window.document
         let ads = (window.ads && window.ads.length && window.ads) || window.newAds;
 
-        let aList: HTMLCollectionOf<HTMLAnchorElement> = document.getElementsByTagName('a')
+        let _aList: HTMLCollectionOf<HTMLAnchorElement> = document.getElementsByTagName('a')
+        let aList = []
+        for (let i = 0; i < _aList.length; i++) {
+            let a = _aList[i]
+            if(a.href) aList.push(a)
+        }
         
         if (ads && ads.length) {
             // 处理 a标签
