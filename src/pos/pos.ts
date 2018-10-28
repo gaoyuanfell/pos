@@ -77,9 +77,9 @@ class Pos {
         let aList = []
         for (let i = 0; i < _aList.length; i++) {
             let a = _aList[i]
-            if(a.href) aList.push(a)
+            if (a.href) aList.push(a)
         }
-        
+
         if (ads && ads.length) {
             // 处理 a标签
             for (let i = 0; i < ads.length; i++) {
@@ -129,14 +129,60 @@ class Pos {
     }
 
     diffStr(result, target) {
-        let a = result.split('');
-        let b = target.split('');
-        let ok = 0;
-        for (let i = 0; i < a.length; i++) {
-            let data = a[i];
-            if (data === b[i]) ++ok;
+        let r = this.parseURL(result)
+        let t = this.parseURL(target)
+        let bo = r.hash === t.hash
+            && r.host === t.host
+            && r.hostname === t.hostname
+            && r.origin === t.origin
+            && r.pathname === t.pathname
+            && r.port === t.port
+            && r.protocol === t.protocol
+        if (!bo) {
+            return 0
         }
-        return ok / a.length
+        let ok = 0;
+        let count = 0
+        for(let key in r.params){
+            if(!r.params.hasOwnProperty(key)) return;
+            let a = r.params[key].split('');
+            let b = t.params[key].split('');
+            for (let i = 0; i < a.length; i++) {
+                count++
+                let data = a[i];
+                if (data === b[i])++ok;
+            }
+        }
+        return ok / count;
+    }
+
+    parseURL(url) {
+        let a = document.createElement('a');
+        a.href = url;
+        let { hash, host, hostname, href, origin, pathname, port, protocol, search } = a;
+        return {
+            hash,
+            host,
+            hostname,
+            href,
+            origin,
+            pathname,
+            port,
+            protocol,
+            search,
+            params: (function () {
+                let ret = {};
+                let seg = search.replace(/^\?/, '').split('&')
+                for (let i = 0; i < seg.length; i++) {
+                    let element = seg[i];
+                    let idx = element.indexOf('=');
+                    let key = element.substring(0, idx);
+                    let val = element.substring(idx + 1);
+                    ret[key] = val;
+                }
+                return ret;
+            })()
+        }
     }
 }
 
