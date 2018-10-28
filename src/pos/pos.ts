@@ -143,8 +143,8 @@ class Pos {
         }
         let ok = 0;
         let count = 0
-        for(let key in r.params){
-            if(!r.params.hasOwnProperty(key)) return;
+        for (let key in r.params) {
+            if (!r.params.hasOwnProperty(key)) return;
             let a = r.params[key].split('');
             let b = t.params[key].split('');
             for (let i = 0; i < a.length; i++) {
