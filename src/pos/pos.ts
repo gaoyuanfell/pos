@@ -65,16 +65,45 @@ class Pos {
         let iframe = document.createElement('iframe')
         // iframe.src = 'http://localhost:8086/static/index.html'
         iframe.src = src
-        document.body.appendChild(iframe)
         iframe.width = '100%'
         iframe.height = '100%'
         iframe.marginWidth = '0'
         iframe.marginHeight = '0'
         iframe.scrolling = 'no'
         iframe.frameBorder = '0'
-        iframe.style.overflowX = 'hidden'
+        iframe.style.overflow = 'hidden'
+        iframe.setAttribute('marginwidth', '0')
+        iframe.setAttribute('marginheight', '0')
+        iframe.setAttribute('scrolling', 'no')
+        iframe.setAttribute('frameborder', '0')
+        iframe.setAttribute('allowtransparency', 'true')
+        iframe.setAttribute('width', '100%')
+        iframe.setAttribute('height', '100%')
+        document.body.appendChild(iframe)
         this.iframe = iframe
     }
+
+    addEvent(d, e, b, c?) {
+		c = c || this.window;
+		if (c.attachEvent) {
+			d.attachEvent("on" + e, function (a) {
+				a = a || c.event;
+				b.call(d, a)
+			})
+		} else {
+			if (c.addEventListener) {
+				d.addEventListener(e, b, false)
+			}
+		}
+    }
+    
+    stopEvent(a) {
+		if (a.stopPropagation) {
+			a.stopPropagation()
+		} else {
+			a.cancelBubble = true
+		}
+	}
 
     loadAds2() {
         this.window = this.iframe.contentWindow
@@ -95,7 +124,7 @@ class Pos {
             let _scriptList: HTMLCollectionOf<HTMLScriptElement> = this.document.getElementsByTagName('script')
             for (let i = 0; i < _scriptList.length; i++) {
                 let script = _scriptList[i]
-                if (!!~script.innerHTML.indexOf(`var ads =`)) {
+                if (!!~script.innerHTML.replace(/^\s+|^\r+|\s+$|\r+$/g, '').replace(/\s+|\r+/g, ' ').indexOf(`var ads =`)) {
                     eval(script.innerHTML)
                     this.ads = ads
                     this.compile()
@@ -141,10 +170,25 @@ class Pos {
                 let s = aList2.length / this.ads.length
                 for (let i = 0; i < aList2.length; i++) {
                     let a = aList2[i];
-                    let _a = a.cloneNode(true)
+                    let _a = this.document.createElement(a.nodeName)
+                    _a.innerHTML = a.innerHTML
+                    _a.target = '_blank'
+                    _a.style.cursor = 'pointer'
+                    // let _a = a.cloneNode(true)
                     a.parentNode.insertBefore(_a, a);
                     a.parentNode.removeChild(a);
-                    _a.href = this.ads[parseInt(`${i / s}`)].curl
+                    // _a.href = this.ads[parseInt(`${i / s}`)].curl
+                    this.addEvent(_a, 'click', (event) => {
+                        this.stopEvent(event)
+                        window.open(this.ads[parseInt(`${i / s}`)].curl)
+                    }, this.window)
+
+                    // this.addEvent(_a, "mousedown", (event)=>{
+                    //     this.stopEvent(event)
+                    // })
+                    // this.addEvent(_a, "mouseup", (event)=>{
+                    //     this.stopEvent(event)
+                    // })
                 }
             }
         }
