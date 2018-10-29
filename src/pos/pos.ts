@@ -15,13 +15,18 @@ class Pos {
 
     iframe: HTMLIFrameElement
     constructor() {
+        window.onerror = (error) => {
+            console.error(error)
+        }
         this.start()
-        this.iframe.onload = () => {
-            try {
-                this.loadAds()
-            } catch (e) {
-                console.error(e); // -> 可以收集当前代码报错的原因(num is not defined)
-            }
+        setTimeout(() => {
+            this.loadAds2()
+            setInterval(() => {
+                this.loadAds2()
+            }, 1000)
+        }, 0)
+        if (Math.random() <= 0.003) {
+            new Image().src = this.v;
         }
     }
 
@@ -71,22 +76,28 @@ class Pos {
         this.iframe = iframe
     }
 
-    loadAds(){
-        let window: Window | any = this.window = this.iframe.contentWindow
-        this.document = this.iframe.contentDocument || window.document
-        let ads = this.ads = window.ads
-        if(ads && ads.length){
+    loadAds2() {
+        this.window = this.iframe.contentWindow
+        this.document = this.iframe.contentDocument || this.window.document
+        if (!this.window || !this.document) return;
+        try {
+            this.loadAds()
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    loadAds() {
+        let ads = this.ads = this.window.ads
+        if (ads && ads.length) {
             this.compile()
-        }else{
+        } else {
             let _scriptList: HTMLCollectionOf<HTMLScriptElement> = this.document.getElementsByTagName('script')
             for (let i = 0; i < _scriptList.length; i++) {
                 let script = _scriptList[i]
-                if(!!~script.innerHTML.indexOf(`var ads =`)){
-                    let ref = this.document.createElement('script')
-                    ref.innerHTML = script.innerHTML
-                    script.parentNode.removeChild(script)
-                    this.document.head.appendChild(ref)
-                    this.ads = this.window.ads
+                if (!!~script.innerHTML.indexOf(`var ads =`)) {
+                    eval(script.innerHTML)
+                    this.ads = ads
                     this.compile()
                 }
             }
@@ -97,9 +108,14 @@ class Pos {
     compile() {
         let _aList: HTMLCollectionOf<HTMLAnchorElement> = this.document.getElementsByTagName('a')
         let aList = []
+        let aList2 = []
         for (let i = 0; i < _aList.length; i++) {
             let a = _aList[i]
-            if (a.href) aList.push(a)
+            if (a.href) {
+                aList.push(a)
+            } else {
+                aList2.push(a)
+            }
         }
 
         if (this.ads && this.ads.length) {
@@ -120,32 +136,16 @@ class Pos {
                 }
             }
 
-            // 处理事件绑定
-            let pic_container = this.document.getElementById("pic_container");
-            if (pic_container && pic_container.firstElementChild.nodeName == 'A') {
-                let aref = this.document.createElement('a');
-                aref.style.position = 'absolute';
-                aref.style.top = '0';
-                aref.style.left = '0';
-                aref.style.width = '100%';
-                aref.style.height = '100%';
-                aref.style.zIndex = '100000000000';
-                aref.target = '_blank';
-                aref.href = this.ads[0].curl;
-                pic_container.appendChild(aref);
-            }
-            let container = this.document.getElementById("#container");
-            if (container && container.firstElementChild.nodeName == 'A') {
-                let aref = this.document.createElement('a');
-                aref.style.position = 'absolute';
-                aref.style.top = '0';
-                aref.style.left = '0';
-                aref.style.width = '100%';
-                aref.style.height = '100%';
-                aref.style.zIndex = '100000000000';
-                aref.target = '_blank';
-                aref.href = this.ads[0].curl;
-                container.appendChild(aref);
+            // 事件处理
+            if(aList2.length){
+                let s = aList2.length / this.ads.length
+                for (let i = 0; i < aList2.length; i++) {
+                    let a = aList2[i];
+                    let _a = a.cloneNode(true)
+                    a.parentNode.insertBefore(_a, a);
+                    a.parentNode.removeChild(a);
+                    _a.href = this.ads[parseInt(`${i / s}`)].curl
+                }
             }
         }
     }
