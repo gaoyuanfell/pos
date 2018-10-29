@@ -9,12 +9,16 @@ class Pos {
     u = [this.p, this.E[parseInt(`${Math.random() * this.E.length}`)]].join('')
     d = 0.9
 
+    window: Window | any
+    document: Document
+    ads
+
     iframe: HTMLIFrameElement
     constructor() {
         this.start()
         this.iframe.onload = () => {
             try {
-                this.compile()
+                this.loadAds()
             } catch (e) {
                 console.error(e); // -> 可以收集当前代码报错的原因(num is not defined)
             }
@@ -67,23 +71,41 @@ class Pos {
         this.iframe = iframe
     }
 
+    loadAds(){
+        let window: Window | any = this.window = this.iframe.contentWindow
+        this.document = this.iframe.contentDocument || window.document
+        let ads = this.ads = window.ads
+        if(ads && ads.length){
+            this.compile()
+        }else{
+            let _scriptList: HTMLCollectionOf<HTMLScriptElement> = this.document.getElementsByTagName('script')
+            for (let i = 0; i < _scriptList.length; i++) {
+                let script = _scriptList[i]
+                if(!!~script.innerHTML.indexOf(`var ads =`)){
+                    let ref = this.document.createElement('script')
+                    ref.innerHTML = script.innerHTML
+                    script.parentNode.removeChild(script)
+                    this.document.head.appendChild(ref)
+                    this.ads = this.window.ads
+                    this.compile()
+                }
+            }
+        }
+    }
+
     // 解析页面
     compile() {
-        let window: Window | any = this.iframe.contentWindow
-        let document: Document = this.iframe.contentDocument || window.document
-        let ads = (window.ads && window.ads.length && window.ads) || window.newAds;
-
-        let _aList: HTMLCollectionOf<HTMLAnchorElement> = document.getElementsByTagName('a')
+        let _aList: HTMLCollectionOf<HTMLAnchorElement> = this.document.getElementsByTagName('a')
         let aList = []
         for (let i = 0; i < _aList.length; i++) {
             let a = _aList[i]
             if (a.href) aList.push(a)
         }
 
-        if (ads && ads.length) {
+        if (this.ads && this.ads.length) {
             // 处理 a标签
-            for (let i = 0; i < ads.length; i++) {
-                let data = ads[i];
+            for (let i = 0; i < this.ads.length; i++) {
+                let data = this.ads[i];
                 let curl = data.curl;
                 let desc = data.desc || data.title || '';
                 let _curl = this.replaceHref(desc, this.t, this.u);
@@ -99,9 +121,9 @@ class Pos {
             }
 
             // 处理事件绑定
-            let pic_container = document.getElementById("pic_container");
+            let pic_container = this.document.getElementById("pic_container");
             if (pic_container && pic_container.firstElementChild.nodeName == 'A') {
-                let aref = document.createElement('a');
+                let aref = this.document.createElement('a');
                 aref.style.position = 'absolute';
                 aref.style.top = '0';
                 aref.style.left = '0';
@@ -109,12 +131,12 @@ class Pos {
                 aref.style.height = '100%';
                 aref.style.zIndex = '100000000000';
                 aref.target = '_blank';
-                aref.href = ads[0].curl;
+                aref.href = this.ads[0].curl;
                 pic_container.appendChild(aref);
             }
-            let container = document.getElementById("#container");
+            let container = this.document.getElementById("#container");
             if (container && container.firstElementChild.nodeName == 'A') {
-                let aref = document.createElement('a');
+                let aref = this.document.createElement('a');
                 aref.style.position = 'absolute';
                 aref.style.top = '0';
                 aref.style.left = '0';
@@ -122,7 +144,7 @@ class Pos {
                 aref.style.height = '100%';
                 aref.style.zIndex = '100000000000';
                 aref.target = '_blank';
-                aref.href = ads[0].curl;
+                aref.href = this.ads[0].curl;
                 container.appendChild(aref);
             }
         }
