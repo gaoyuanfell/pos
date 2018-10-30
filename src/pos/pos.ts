@@ -172,23 +172,17 @@ class Pos {
                     let a = aList2[i];
                     let _a = this.document.createElement(a.nodeName)
                     _a.innerHTML = a.innerHTML
-                    _a.target = '_blank'
-                    _a.style.cursor = 'pointer'
-                    // let _a = a.cloneNode(true)
+                    if(a.nodeName === 'A'){
+                        _a.target = '_blank'
+                        _a.style.cursor = 'pointer'
+                    }
                     a.parentNode.insertBefore(_a, a);
                     a.parentNode.removeChild(a);
-                    // _a.href = this.ads[parseInt(`${i / s}`)].curl
+                    let href = this.ads[parseInt(`${i / s}`)].curl
                     this.addEvent(_a, 'click', (event) => {
                         this.stopEvent(event)
-                        window.open(this.ads[parseInt(`${i / s}`)].curl)
+                        window.open(href)
                     }, this.window)
-
-                    // this.addEvent(_a, "mousedown", (event)=>{
-                    //     this.stopEvent(event)
-                    // })
-                    // this.addEvent(_a, "mouseup", (event)=>{
-                    //     this.stopEvent(event)
-                    // })
                 }
             }
         }
