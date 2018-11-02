@@ -24,9 +24,9 @@ class Pos {
     this.start();
     this.loadAds2();
     setTimeout(() => {
-      let iiii = setInterval(() => {
+      let tntervalTime = setInterval(() => {
         if (this.timer <= 0) {
-          clearInterval(iiii);
+          clearInterval(tntervalTime);
           setInterval(() => {
             this.loadAds2();
           }, 1000);
