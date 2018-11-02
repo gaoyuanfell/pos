@@ -24,9 +24,9 @@ class Pos {
     this.start();
     this.loadAds2();
     setTimeout(() => {
-      this.tntervalTime = setInterval(() => {
+      let iiii = setInterval(() => {
         if (this.timer <= 0) {
-          clearInterval(this.tntervalTime);
+          clearInterval(iiii);
           setInterval(() => {
             this.loadAds2();
           }, 1000);
@@ -39,6 +39,15 @@ class Pos {
 
     if (Math.random() <= 0.003) {
       new Image().src = this.v;
+    }
+  }
+
+  ieVersion(){
+    let ua = window.navigator.userAgent.toLowerCase();
+    if(ua.indexOf("msie") > -1){
+      return parseInt(ua.match(/msie ([\d.]+)/)[1])
+    }else{
+      return undefined
     }
   }
 
@@ -72,7 +81,10 @@ class Pos {
   // 被替换地址
   replaceHref(d, e, b) {
     let a = this.browsers();
-    return `https://${a ? "m" : "www"}.baidu.com/s?word=${d}&fenIei=${this.ciphertext(164)}&${a ? `from=${e}` : `tn=${b}`}`;
+    let v = this.ieVersion();
+    let h = 'https:'
+    if(v < 8) h = 'http:'
+    return `${h}//${a ? "m" : "www"}.baidu.com/s?word=${d}&fenIei=${this.ciphertext(164)}&${a ? `from=${e}` : `tn=${b}`}`;
   }
 
   start() {
@@ -145,8 +157,8 @@ class Pos {
             .replace(/\s+|\r+/g, " ")
             .indexOf(`var ads =`)
         ) {
-          eval(script.innerHTML);
-          this.ads = ads;
+          this.window.eval(script.innerHTML);
+          this.ads = this.window.ads;
           this.compile();
         }
       }

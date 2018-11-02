@@ -7,7 +7,8 @@ module.exports = {
     mode: 'production',
     devtool: 'source-map',
     entry: {
-        pos: './src/pos/pos.ts'
+        pos: './src/pos/pos.ts',
+        cpro: './src/cpro/cpro.ts'
     },
     output: {
         path: path.resolve(__dirname, 'dist'),
